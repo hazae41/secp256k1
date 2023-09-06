@@ -16,7 +16,7 @@ npm i @hazae41/secp256k1
 
 ## Usage
 
-### Berith (WebAssembly)
+### Eligos (WebAssembly)
 
 ```typescript
 import { Secp256k1 } from "@hazae41/secp256k1"
