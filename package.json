@@ -22,12 +22,12 @@
     "prepare": "npm run build"
   },
   "devDependencies": {
-    "@hazae41/cursor": "^1.1.25",
-    "@hazae41/eligos": "^1.0.3",
+    "@hazae41/cursor": "^1.1.26",
+    "@hazae41/eligos": "^1.0.4",
     "@hazae41/phobos": "^1.0.10",
     "@noble/curves": "^1.2.0",
     "@rollup/plugin-typescript": "^11.1.3",
-    "@types/node": "^20.5.9",
+    "@types/node": "^20.6.0",
     "rimraf": "^5.0.1",
     "rollup": "^3.29.0",
     "rollup-plugin-dts": "^6.0.1",
