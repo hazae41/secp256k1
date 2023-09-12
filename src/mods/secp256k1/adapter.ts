@@ -1,8 +1,7 @@
 import { Cursor, CursorWriteError } from "@hazae41/cursor"
 import { None, Option } from "@hazae41/option"
 import { Ok, Result } from "@hazae41/result"
-import { CryptoError } from "libs/crypto/crypto.js"
-import { Promiseable } from "libs/promises/promiseable.js"
+import { ConvertError, ExportError, GenerateError, ImportError, RecoverError, SignError } from "./errors.js"
 
 let global: Option<Adapter> = new None()
 
@@ -58,30 +57,30 @@ export class Copied implements Copiable {
 
 }
 
-export interface SignatureAndRecovery extends Disposable {
-  tryExport(): Promiseable<Result<Copiable, CryptoError>>
+export interface PrivateKey extends Disposable {
+  tryGetPublicKey(): Result<PublicKey, ConvertError>
+  trySign(payload: Uint8Array): Result<SignatureAndRecovery, SignError>
+  tryExport(): Result<Copiable, ExportError>
 }
 
-export interface VerifyingKey extends Disposable {
+export interface PublicKey extends Disposable {
   // tryVerify(payload: Uint8Array, signature: SignatureAndRecovery): Promiseable<Result<boolean, CryptoError>>
-  tryExportCompressed(): Promiseable<Result<Copiable, CryptoError>>
-  tryExportUncompressed(): Promiseable<Result<Copiable, CryptoError>>
+  tryExportCompressed(): Result<Copiable, ExportError>
+  tryExportUncompressed(): Result<Copiable, ExportError>
 }
 
-export interface SigningKey extends Disposable {
-  tryGetPublicKey(): Promiseable<Result<VerifyingKey, CryptoError>>
-  trySign(payload: Uint8Array): Promiseable<Result<SignatureAndRecovery, CryptoError>>
-  tryExport(): Promiseable<Result<Copiable, CryptoError>>
+export interface SignatureAndRecovery extends Disposable {
+  tryExport(): Result<Copiable, ExportError>
 }
 
-export interface VerifyingKeyFactory {
-  tryImport(bytes: Uint8Array): Promiseable<Result<VerifyingKey, CryptoError>>
-  tryRecover(hashed: Uint8Array, signature: SignatureAndRecovery): Promiseable<Result<VerifyingKey, CryptoError>>
+export interface PrivateKeyFactory {
+  tryRandom(): Result<PrivateKey, GenerateError>
+  tryImport(bytes: Uint8Array): Result<PrivateKey, ImportError>
 }
 
-export interface SigningKeyFactory {
-  tryRandom(): Promiseable<Result<SigningKey, CryptoError>>
-  tryImport(bytes: Uint8Array): Promiseable<Result<SigningKey, CryptoError>>
+export interface PublicKeyFactory {
+  tryImport(bytes: Uint8Array): Result<PublicKey, ImportError>
+  tryRecover(hashed: Uint8Array, signature: SignatureAndRecovery): Result<PublicKey, RecoverError>
 }
 
 export interface SignatureAndRecoveryFactory {
@@ -89,7 +88,7 @@ export interface SignatureAndRecoveryFactory {
 }
 
 export interface Adapter {
-  readonly SigningKey: SigningKeyFactory
-  readonly VerifyingKey: VerifyingKeyFactory
+  readonly PrivateKey: PrivateKeyFactory
+  readonly PublicKey: PublicKeyFactory
   readonly SignatureAndRecovery: SignatureAndRecoveryFactory
 }

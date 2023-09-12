@@ -18,19 +18,24 @@ npm i @hazae41/secp256k1
 
 ### Eligos (WebAssembly)
 
+```bash
+npm i @hazae41/eligos
+```
+
 ```typescript
 import { Secp256k1 } from "@hazae41/secp256k1"
-import { Eligos } from "@hazae41/eligos"
 
-await Eligos.initBundledOnce()
-const secp256k1 = Secp256k1.fromEligos(Eligos)
+Secp256k1.set(await Secp256k1.fromEligos())
 ```
 
 ### Noble (JavaScript)
 
+```bash
+npm i @noble/curves
+```
+
 ```typescript
 import { Secp256k1 } from "@hazae41/secp256k1"
-import * as noble_secp256k1 from "@noble/curves/secp256k1"
 
-const secp256k1 = Secp256k1.fromNoble(noble_secp256k1.secp256k1)
+Secp256k1.set(Secp256k1.fromNoble())
 ```

@@ -1,4 +1,5 @@
+export * from "./adapter.js";
 export * from "./eligos.js";
+export * from "./errors.js";
 export * from "./noble.js";
-export * from "./secp256k1.js";
 

@@ -1,12 +1,12 @@
-import { Ok } from "@hazae41/result"
+import { Ok, Result } from "@hazae41/result"
 import { ProjPointType, RecoveredSignatureType } from "@noble/curves/abstract/weierstrass"
-import type { secp256k1 } from "@noble/curves/secp256k1"
-import { tryCryptoSync } from "libs/crypto/crypto.js"
-import { Adapter, Copied } from "./secp256k1.js"
+import { secp256k1 } from "@noble/curves/secp256k1"
+import { Adapter, Copied } from "./adapter.js"
+import { ConvertError, ExportError, GenerateError, ImportError, RecoverError, SignError, VerifyError } from "./errors.js"
 
-export function fromNoble(noble: typeof secp256k1): Adapter {
+export function fromNoble(): Adapter {
 
-  class SigningKey {
+  class PrivateKey {
 
     constructor(
       readonly bytes: Uint8Array
@@ -15,23 +15,31 @@ export function fromNoble(noble: typeof secp256k1): Adapter {
     [Symbol.dispose]() { }
 
     static new(bytes: Uint8Array) {
-      return new SigningKey(bytes)
+      return new PrivateKey(bytes)
     }
 
     static tryRandom() {
-      return tryCryptoSync(() => noble.utils.randomPrivateKey()).mapSync(SigningKey.new)
+      return Result.runAndWrapSync(() => {
+        return secp256k1.utils.randomPrivateKey()
+      }).mapErrSync(GenerateError.from).mapSync(PrivateKey.new)
     }
 
     static tryImport(bytes: Uint8Array) {
-      return new Ok(new SigningKey(bytes))
+      return Result.assert(secp256k1.utils.isValidPrivateKey(bytes))
+        .mapErrSync(ImportError.from)
+        .mapSync(() => PrivateKey.new(bytes))
     }
 
     tryGetPublicKey() {
-      return tryCryptoSync(() => noble.ProjectivePoint.fromPrivateKey(this.bytes)).mapSync(VerifyingKey.new)
+      return Result.runAndWrapSync(() => {
+        return secp256k1.ProjectivePoint.fromPrivateKey(this.bytes)
+      }).mapErrSync(ConvertError.from).mapSync(PublicKey.new)
     }
 
     trySign(payload: Uint8Array) {
-      return tryCryptoSync(() => noble.sign(payload, this.bytes)).mapSync(SignatureAndRecovery.new)
+      return Result.runAndWrapSync(() => {
+        return secp256k1.sign(payload, this.bytes)
+      }).mapErrSync(SignError.from).mapSync(SignatureAndRecovery.new)
     }
 
     tryExport() {
@@ -40,7 +48,7 @@ export function fromNoble(noble: typeof secp256k1): Adapter {
 
   }
 
-  class VerifyingKey {
+  class PublicKey {
 
     constructor(
       readonly inner: ProjPointType<bigint>
@@ -49,27 +57,37 @@ export function fromNoble(noble: typeof secp256k1): Adapter {
     [Symbol.dispose]() { }
 
     static new(inner: ProjPointType<bigint>) {
-      return new VerifyingKey(inner)
+      return new PublicKey(inner)
     }
 
     static tryImport(bytes: Uint8Array) {
-      return tryCryptoSync(() => noble.ProjectivePoint.fromHex(bytes)).mapSync(VerifyingKey.new)
+      return Result.runAndWrapSync(() => {
+        return secp256k1.ProjectivePoint.fromHex(bytes)
+      }).mapErrSync(ImportError.from).mapSync(PublicKey.new)
     }
 
     static tryRecover(hashed: Uint8Array, signature: SignatureAndRecovery) {
-      return tryCryptoSync(() => signature.inner.recoverPublicKey(hashed)).mapSync(VerifyingKey.new)
+      return Result.runAndWrapSync(() => {
+        return signature.inner.recoverPublicKey(hashed)
+      }).mapErrSync(RecoverError.from).mapSync(PublicKey.new)
     }
 
     tryVerify(payload: Uint8Array, signature: SignatureAndRecovery) {
-      return tryCryptoSync(() => noble.verify(signature.inner, payload, this.inner.toRawBytes()))
+      return Result.runAndWrapSync(() => {
+        return secp256k1.verify(signature.inner, payload, this.inner.toRawBytes())
+      }).mapErrSync(VerifyError.from)
     }
 
     tryExportCompressed() {
-      return new Ok(new Copied(this.inner.toRawBytes(true)))
+      return Result.runAndWrapSync(() => {
+        return this.inner.toRawBytes(true)
+      }).mapErrSync(ExportError.from).mapSync(Copied.new)
     }
 
     tryExportUncompressed() {
-      return new Ok(new Copied(this.inner.toRawBytes(false)))
+      return Result.runAndWrapSync(() => {
+        return this.inner.toRawBytes(false)
+      }).mapErrSync(ExportError.from).mapSync(Copied.new)
     }
 
   }
@@ -87,20 +105,22 @@ export function fromNoble(noble: typeof secp256k1): Adapter {
     }
 
     static tryImport(bytes: Uint8Array) {
-      return tryCryptoSync(() => noble.Signature.fromCompact(bytes.subarray(0, 64)).addRecoveryBit(bytes[64])).mapSync(SignatureAndRecovery.new)
+      return Result.runAndWrapSync(() => {
+        return secp256k1.Signature.fromCompact(bytes.subarray(0, 64)).addRecoveryBit(bytes[64])
+      }).mapErrSync(ImportError.from).mapSync(SignatureAndRecovery.new)
     }
 
     tryExport() {
-      return tryCryptoSync(() => {
+      return Result.runAndWrapSync(() => {
         const rAndS = this.inner.toCompactRawBytes()
         const rAndSAndV = new Uint8Array(rAndS.length + 1)
         rAndSAndV.set(rAndS, 0)
         rAndSAndV[64] = this.inner.recovery
         return new Copied(rAndSAndV)
-      })
+      }).mapErrSync(ExportError.from)
     }
 
   }
 
-  return { SigningKey, VerifyingKey, SignatureAndRecovery }
+  return { PrivateKey, PublicKey, SignatureAndRecovery }
 }

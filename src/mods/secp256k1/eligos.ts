@@ -1,10 +1,12 @@
-import type { Eligos } from "@hazae41/eligos"
-import { tryCryptoSync } from "libs/crypto/crypto.js"
-import { Adapter } from "./secp256k1.js"
+import { Eligos } from "@hazae41/eligos"
+import { Result } from "@hazae41/result"
+import { Adapter } from "./adapter.js"
+import { ConvertError, ExportError, GenerateError, ImportError, RecoverError, SignError } from "./errors.js"
 
-export function fromEligos(eligos: typeof Eligos): Adapter {
+export async function fromEligos(): Promise<Adapter> {
+  await Eligos.initBundledOnce()
 
-  class SigningKey {
+  class PrivateKey {
 
     constructor(
       readonly inner: Eligos.SigningKey
@@ -15,32 +17,42 @@ export function fromEligos(eligos: typeof Eligos): Adapter {
     }
 
     static new(inner: Eligos.SigningKey) {
-      return new SigningKey(inner)
+      return new PrivateKey(inner)
     }
 
     static tryRandom() {
-      return tryCryptoSync(() => eligos.SigningKey.random()).mapSync(SigningKey.new)
+      return Result.runAndWrapSync(() => {
+        return Eligos.SigningKey.random()
+      }).mapErrSync(GenerateError.from).mapSync(PrivateKey.new)
     }
 
     static tryImport(bytes: Uint8Array) {
-      return tryCryptoSync(() => eligos.SigningKey.from_bytes(bytes)).mapSync(SigningKey.new)
+      return Result.runAndWrapSync(() => {
+        return Eligos.SigningKey.from_bytes(bytes)
+      }).mapErrSync(ImportError.from).mapSync(PrivateKey.new)
     }
 
     tryGetPublicKey() {
-      return tryCryptoSync(() => this.inner.verifying_key()).mapSync(VerifyingKey.new)
+      return Result.runAndWrapSync(() => {
+        return this.inner.verifying_key()
+      }).mapErrSync(ConvertError.from).mapSync(PublicKey.new)
     }
 
     trySign(payload: Uint8Array) {
-      return tryCryptoSync(() => this.inner.sign_prehash_recoverable(payload)).mapSync(SignatureAndRecovery.new)
+      return Result.runAndWrapSync(() => {
+        return this.inner.sign_prehash_recoverable(payload)
+      }).mapErrSync(SignError.from).mapSync(SignatureAndRecovery.new)
     }
 
     tryExport() {
-      return tryCryptoSync(() => this.inner.to_bytes())
+      return Result.runAndWrapSync(() => {
+        return this.inner.to_bytes()
+      }).mapErrSync(ExportError.from)
     }
 
   }
 
-  class VerifyingKey {
+  class PublicKey {
 
     constructor(
       readonly inner: Eligos.VerifyingKey
@@ -51,15 +63,19 @@ export function fromEligos(eligos: typeof Eligos): Adapter {
     }
 
     static new(inner: Eligos.VerifyingKey) {
-      return new VerifyingKey(inner)
+      return new PublicKey(inner)
     }
 
     static tryImport(bytes: Uint8Array) {
-      return tryCryptoSync(() => eligos.VerifyingKey.from_sec1_bytes(bytes)).mapSync(VerifyingKey.new)
+      return Result.runAndWrapSync(() => {
+        return Eligos.VerifyingKey.from_sec1_bytes(bytes)
+      }).mapErrSync(ImportError.from).mapSync(PublicKey.new)
     }
 
     static tryRecover(hashed: Uint8Array, signature: SignatureAndRecovery) {
-      return tryCryptoSync(() => eligos.VerifyingKey.recover_from_prehash(hashed, signature.inner)).mapSync(VerifyingKey.new)
+      return Result.runAndWrapSync(() => {
+        return Eligos.VerifyingKey.recover_from_prehash(hashed, signature.inner)
+      }).mapErrSync(RecoverError.from).mapSync(PublicKey.new)
     }
 
     // tryVerify(payload: Uint8Array, signature: Signature) {
@@ -67,11 +83,15 @@ export function fromEligos(eligos: typeof Eligos): Adapter {
     // }
 
     tryExportCompressed() {
-      return tryCryptoSync(() => this.inner.to_sec1_compressed_bytes())
+      return Result.runAndWrapSync(() => {
+        return this.inner.to_sec1_compressed_bytes()
+      }).mapErrSync(ExportError.from)
     }
 
     tryExportUncompressed() {
-      return tryCryptoSync(() => this.inner.to_sec1_uncompressed_bytes())
+      return Result.runAndWrapSync(() => {
+        return this.inner.to_sec1_uncompressed_bytes()
+      }).mapErrSync(ExportError.from)
     }
 
   }
@@ -95,10 +115,12 @@ export function fromEligos(eligos: typeof Eligos): Adapter {
     // }
 
     tryExport() {
-      return tryCryptoSync(() => this.inner.to_bytes())
+      return Result.runAndWrapSync(() => {
+        return this.inner.to_bytes()
+      }).mapErrSync(ExportError.from)
     }
 
   }
 
-  return { SigningKey, VerifyingKey, SignatureAndRecovery }
+  return { PrivateKey, PublicKey, SignatureAndRecovery }
 }
