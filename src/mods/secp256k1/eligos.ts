@@ -1,3 +1,4 @@
+import { Box, Copiable } from "@hazae41/box"
 import { Eligos } from "@hazae41/eligos"
 import { Result } from "@hazae41/result"
 import { Adapter } from "./adapter.js"
@@ -26,7 +27,7 @@ export async function fromEligos(): Promise<Adapter> {
       }).mapErrSync(GenerateError.from).mapSync(PrivateKey.new)
     }
 
-    static tryImport(bytes: Uint8Array) {
+    static tryImport(bytes: Box<Copiable>) {
       return Result.runAndWrapSync(() => {
         return Eligos.SigningKey.from_bytes(bytes)
       }).mapErrSync(ImportError.from).mapSync(PrivateKey.new)
@@ -38,7 +39,7 @@ export async function fromEligos(): Promise<Adapter> {
       }).mapErrSync(ConvertError.from).mapSync(PublicKey.new)
     }
 
-    trySign(payload: Uint8Array) {
+    trySign(payload: Box<Copiable>) {
       return Result.runAndWrapSync(() => {
         return this.inner.sign_prehash_recoverable(payload)
       }).mapErrSync(SignError.from).mapSync(SignatureAndRecovery.new)
@@ -66,13 +67,13 @@ export async function fromEligos(): Promise<Adapter> {
       return new PublicKey(inner)
     }
 
-    static tryImport(bytes: Uint8Array) {
+    static tryImport(bytes: Box<Copiable>) {
       return Result.runAndWrapSync(() => {
         return Eligos.VerifyingKey.from_sec1_bytes(bytes)
       }).mapErrSync(ImportError.from).mapSync(PublicKey.new)
     }
 
-    static tryRecover(hashed: Uint8Array, signature: SignatureAndRecovery) {
+    static tryRecover(hashed: Box<Copiable>, signature: SignatureAndRecovery) {
       return Result.runAndWrapSync(() => {
         return Eligos.VerifyingKey.recover_from_prehash(hashed, signature.inner)
       }).mapErrSync(RecoverError.from).mapSync(PublicKey.new)
