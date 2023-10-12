@@ -1,4 +1,4 @@
-import { Box, Copiable, Copied } from "@hazae41/box"
+import { BytesOrCopiable, Copied } from "@hazae41/box"
 import { Ok, Result } from "@hazae41/result"
 import { ProjPointType, RecoveredSignatureType } from "@noble/curves/abstract/weierstrass"
 import { secp256k1 } from "@noble/curves/secp256k1"
@@ -7,46 +7,48 @@ import { ConvertError, ExportError, GenerateError, ImportError, RecoverError, Si
 
 export function fromNoble(): Adapter {
 
+  function getBytes(bytes: BytesOrCopiable) {
+    return "bytes" in bytes ? bytes.bytes : bytes
+  }
+
   class PrivateKey {
 
     constructor(
-      readonly bytes: Box<Copiable>
+      readonly bytes: Uint8Array
     ) { }
 
-    [Symbol.dispose]() {
-      this.bytes[Symbol.dispose]()
-    }
+    [Symbol.dispose]() { }
 
-    static new(bytes: Box<Copiable>) {
+    static new(bytes: Uint8Array) {
       return new PrivateKey(bytes)
     }
 
     static tryRandom() {
       return Result.runAndWrapSync(() => {
-        return new Box(new Copied(secp256k1.utils.randomPrivateKey()))
+        return secp256k1.utils.randomPrivateKey()
       }).mapErrSync(GenerateError.from).mapSync(PrivateKey.new)
     }
 
-    static tryImport(bytes: Box<Copiable>) {
-      return Result.assert(secp256k1.utils.isValidPrivateKey(bytes.get().bytes))
+    static tryImport(bytes: BytesOrCopiable) {
+      return Result.assert(secp256k1.utils.isValidPrivateKey(getBytes(bytes)))
+        .set(PrivateKey.new(getBytes(bytes).slice()))
         .mapErrSync(ImportError.from)
-        .mapSync(() => PrivateKey.new(bytes))
     }
 
     tryGetPublicKey() {
       return Result.runAndWrapSync(() => {
-        return secp256k1.ProjectivePoint.fromPrivateKey(this.bytes.get().bytes)
+        return secp256k1.ProjectivePoint.fromPrivateKey(this.bytes)
       }).mapErrSync(ConvertError.from).mapSync(PublicKey.new)
     }
 
-    trySign(payload: Box<Copiable>) {
+    trySign(payload: BytesOrCopiable) {
       return Result.runAndWrapSync(() => {
-        return secp256k1.sign(payload.get().bytes, this.bytes.get().bytes)
+        return secp256k1.sign(getBytes(payload), this.bytes)
       }).mapErrSync(SignError.from).mapSync(SignatureAndRecovery.new)
     }
 
     tryExport() {
-      return new Ok(this.bytes.unwrap())
+      return new Ok(new Copied(this.bytes))
     }
 
   }
@@ -63,21 +65,21 @@ export function fromNoble(): Adapter {
       return new PublicKey(inner)
     }
 
-    static tryImport(bytes: Box<Copiable>) {
+    static tryImport(bytes: BytesOrCopiable) {
       return Result.runAndWrapSync(() => {
-        return secp256k1.ProjectivePoint.fromHex(bytes.get().bytes)
+        return secp256k1.ProjectivePoint.fromHex(getBytes(bytes))
       }).mapErrSync(ImportError.from).mapSync(PublicKey.new)
     }
 
-    static tryRecover(hashed: Box<Copiable>, signature: SignatureAndRecovery) {
+    static tryRecover(hashed: BytesOrCopiable, signature: SignatureAndRecovery) {
       return Result.runAndWrapSync(() => {
-        return signature.inner.recoverPublicKey(hashed.get().bytes)
+        return signature.inner.recoverPublicKey(getBytes(hashed))
       }).mapErrSync(RecoverError.from).mapSync(PublicKey.new)
     }
 
-    tryVerify(payload: Box<Copiable>, signature: SignatureAndRecovery) {
+    tryVerify(payload: BytesOrCopiable, signature: SignatureAndRecovery) {
       return Result.runAndWrapSync(() => {
-        return secp256k1.verify(signature.inner, payload.get().bytes, this.inner.toRawBytes())
+        return secp256k1.verify(signature.inner, getBytes(payload), this.inner.toRawBytes())
       }).mapErrSync(VerifyError.from)
     }
 
@@ -107,9 +109,11 @@ export function fromNoble(): Adapter {
       return new SignatureAndRecovery(inner)
     }
 
-    static tryImport(bytes: Box<Copiable>) {
+    static tryImport(bytes: BytesOrCopiable) {
+      const bytes2 = getBytes(bytes)
+
       return Result.runAndWrapSync(() => {
-        return secp256k1.Signature.fromCompact(bytes.get().bytes.subarray(0, 64)).addRecoveryBit(bytes.get().bytes[64])
+        return secp256k1.Signature.fromCompact(bytes2.subarray(0, 64)).addRecoveryBit(bytes2[64])
       }).mapErrSync(ImportError.from).mapSync(SignatureAndRecovery.new)
     }
 

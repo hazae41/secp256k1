@@ -7,8 +7,8 @@
   "repository": "github:hazae41/secp256k1",
   "author": "hazae41",
   "license": "MIT",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.mjs",
+  "main": "./dist/cjs/src/index.cjs",
+  "module": "./dist/esm/src/index.mjs",
   "types": "./dist/types/index.d.ts",
   "sideEffects": false,
   "files": [
@@ -29,13 +29,14 @@
     "rollup": "^4.0.2",
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-node-externals": "^6.1.2",
+    "tslib": "^2.6.2",
     "typescript": "^5.2.2"
   },
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.mjs",
-      "require": "./dist/cjs/index.cjs"
+      "import": "./dist/esm/src/index.mjs",
+      "require": "./dist/cjs/src/index.cjs"
     }
   },
   "keywords": [
@@ -48,12 +49,12 @@
     "esmodules"
   ],
   "dependencies": {
-    "@hazae41/box": "^1.0.8",
+    "@hazae41/box": "^1.0.11",
     "@hazae41/option": "^1.0.26",
     "@hazae41/result": "^1.1.8"
   },
   "optionalDependencies": {
-    "@hazae41/eligos": "^1.0.5",
+    "@hazae41/eligos": "^1.0.6",
     "@noble/curves": "^1.2.0"
   }
 }

@@ -1,4 +1,4 @@
-import { Box, Copiable } from "@hazae41/box"
+import { BytesOrCopiable, Copiable } from "@hazae41/box"
 import { None, Option } from "@hazae41/option"
 import { Result } from "@hazae41/result"
 import { ConvertError, ExportError, GenerateError, ImportError, RecoverError, SignError } from "./errors.js"
@@ -15,7 +15,7 @@ export function set(value?: Adapter) {
 
 export interface PrivateKey extends Disposable {
   tryGetPublicKey(): Result<PublicKey, ConvertError>
-  trySign(payload: Box<Copiable>): Result<SignatureAndRecovery, SignError>
+  trySign(payload: BytesOrCopiable): Result<SignatureAndRecovery, SignError>
   tryExport(): Result<Copiable, ExportError>
 }
 
@@ -31,12 +31,12 @@ export interface SignatureAndRecovery extends Disposable {
 
 export interface PrivateKeyFactory {
   tryRandom(): Result<PrivateKey, GenerateError>
-  tryImport(bytes: Box<Copiable>): Result<PrivateKey, ImportError>
+  tryImport(bytes: BytesOrCopiable): Result<PrivateKey, ImportError>
 }
 
 export interface PublicKeyFactory {
-  tryImport(bytes: Box<Copiable>): Result<PublicKey, ImportError>
-  tryRecover(hashed: Box<Copiable>, signature: SignatureAndRecovery): Result<PublicKey, RecoverError>
+  tryImport(bytes: BytesOrCopiable): Result<PublicKey, ImportError>
+  tryRecover(hashed: BytesOrCopiable, signature: SignatureAndRecovery): Result<PublicKey, RecoverError>
 }
 
 export interface SignatureAndRecoveryFactory {

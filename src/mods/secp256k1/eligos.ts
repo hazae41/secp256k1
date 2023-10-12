@@ -1,4 +1,4 @@
-import { Box, Copiable } from "@hazae41/box"
+import { Box, BytesOrCopiable } from "@hazae41/box"
 import { Eligos } from "@hazae41/eligos"
 import { Result } from "@hazae41/result"
 import { Adapter } from "./adapter.js"
@@ -6,6 +6,14 @@ import { ConvertError, ExportError, GenerateError, ImportError, RecoverError, Si
 
 export async function fromEligos(): Promise<Adapter> {
   await Eligos.initBundledOnce()
+
+  function getMemory(bytesOrCopiable: BytesOrCopiable) {
+    if (bytesOrCopiable instanceof Eligos.Memory)
+      return Box.greedy(bytesOrCopiable)
+    if (bytesOrCopiable instanceof Uint8Array)
+      return Box.new(new Eligos.Memory(bytesOrCopiable))
+    return Box.new(new Eligos.Memory(bytesOrCopiable.bytes))
+  }
 
   class PrivateKey {
 
@@ -27,9 +35,11 @@ export async function fromEligos(): Promise<Adapter> {
       }).mapErrSync(GenerateError.from).mapSync(PrivateKey.new)
     }
 
-    static tryImport(bytes: Box<Copiable>) {
+    static tryImport(bytes: BytesOrCopiable) {
+      using memory = getMemory(bytes)
+
       return Result.runAndWrapSync(() => {
-        return Eligos.SigningKey.from_bytes(bytes)
+        return Eligos.SigningKey.from_bytes(memory.inner)
       }).mapErrSync(ImportError.from).mapSync(PrivateKey.new)
     }
 
@@ -39,9 +49,11 @@ export async function fromEligos(): Promise<Adapter> {
       }).mapErrSync(ConvertError.from).mapSync(PublicKey.new)
     }
 
-    trySign(payload: Box<Copiable>) {
+    trySign(payload: BytesOrCopiable) {
+      using memory = getMemory(payload)
+
       return Result.runAndWrapSync(() => {
-        return this.inner.sign_prehash_recoverable(payload)
+        return this.inner.sign_prehash_recoverable(memory.inner)
       }).mapErrSync(SignError.from).mapSync(SignatureAndRecovery.new)
     }
 
@@ -67,15 +79,19 @@ export async function fromEligos(): Promise<Adapter> {
       return new PublicKey(inner)
     }
 
-    static tryImport(bytes: Box<Copiable>) {
+    static tryImport(bytes: BytesOrCopiable) {
+      using memory = getMemory(bytes)
+
       return Result.runAndWrapSync(() => {
-        return Eligos.VerifyingKey.from_sec1_bytes(bytes)
+        return Eligos.VerifyingKey.from_sec1_bytes(memory.inner)
       }).mapErrSync(ImportError.from).mapSync(PublicKey.new)
     }
 
-    static tryRecover(hashed: Box<Copiable>, signature: SignatureAndRecovery) {
+    static tryRecover(hashed: BytesOrCopiable, signature: SignatureAndRecovery) {
+      using memory = getMemory(hashed)
+
       return Result.runAndWrapSync(() => {
-        return Eligos.VerifyingKey.recover_from_prehash(hashed, signature.inner)
+        return Eligos.VerifyingKey.recover_from_prehash(memory.inner, signature.inner)
       }).mapErrSync(RecoverError.from).mapSync(PublicKey.new)
     }
 
