@@ -19,6 +19,7 @@ export abstract class PrivateKey implements Disposable {
   static importOrThrow(bytes: BytesOrCopiable): PrivateKey {
     throw new Error("Method not implemented.")
   }
+
 }
 
 export abstract class PublicKey implements Disposable {
@@ -40,6 +41,7 @@ export abstract class PublicKey implements Disposable {
   static recoverOrThrow(hashed: BytesOrCopiable, signature: SignatureAndRecovery): PublicKey {
     throw new Error("Method not implemented.")
   }
+
 }
 
 export abstract class SignatureAndRecovery implements Disposable {
