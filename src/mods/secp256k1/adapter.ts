@@ -1,20 +1,18 @@
-import { None, Option } from "@hazae41/option"
-import { PrivateKey, PublicKey, SignatureAndRecovery } from "./generic.js"
-
-export * as Generic from "./generic.js"
+import { None, Nullable, Option } from "@hazae41/option"
+import { SignatureAndRecovery, SigningKey, VerifyingKey } from "./abstract.js"
 
 let global: Option<Adapter> = new None()
 
 export function get() {
-  return global.unwrap()
+  return global
 }
 
-export function set(value?: Adapter) {
+export function set(value: Nullable<Adapter>) {
   global = Option.wrap(value)
 }
 
 export interface Adapter {
-  readonly PrivateKey: typeof PrivateKey
-  readonly PublicKey: typeof PublicKey
+  readonly SigningKey: typeof SigningKey
+  readonly VerifyingKey: typeof VerifyingKey
   readonly SignatureAndRecovery: typeof SignatureAndRecovery
 } 

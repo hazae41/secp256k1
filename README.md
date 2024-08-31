@@ -16,16 +16,19 @@ npm i @hazae41/secp256k1
 
 ## Usage
 
-### Eligos (WebAssembly)
+### WebAssembly
 
 ```bash
-npm i @hazae41/eligos
+npm i @hazae41/secp256k1.wasm
 ```
 
 ```typescript
 import { Secp256k1 } from "@hazae41/secp256k1"
+import { Secp256k1Wasm } from "@hazae41/secp256k1.wasm"
 
-Secp256k1.set(await Secp256k1.fromEligos())
+await Secp256k1Wasm.initBundled()
+
+Secp256k1.set(Secp256k1.fromWasm(Secp256k1Wasm))
 ```
 
 ### Noble (JavaScript)
@@ -36,6 +39,7 @@ npm i @noble/curves
 
 ```typescript
 import { Secp256k1 } from "@hazae41/secp256k1"
+import * as Secp256k1Noble from "@noble/curves/secp256k1"
 
-Secp256k1.set(Secp256k1.fromNoble())
+Secp256k1.set(Secp256k1.fromNoble(Secp256k1Noble))
 ```

@@ -1,15 +1,17 @@
-import { BytesOrCopiable, Copied } from "@hazae41/box"
-import { ProjPointType, RecoveredSignatureType } from "@noble/curves/abstract/weierstrass"
-import { secp256k1 } from "@noble/curves/secp256k1"
-import { Adapter, Generic } from "./adapter.js"
+import type { ProjPointType, RecoveredSignatureType } from "@noble/curves/abstract/weierstrass"
+import type * as Secp256k1Noble from "@noble/curves/secp256k1"
+import { BytesOrCopiable, Copied } from "libs/copiable/index.js"
+import * as Abstract from "./abstract.js"
+import { Adapter } from "./adapter.js"
 
-export function fromNoble(): Adapter {
+export function fromNoble(noble: typeof Secp256k1Noble) {
+  const { secp256k1 } = noble
 
   function getBytes(bytes: BytesOrCopiable) {
     return "bytes" in bytes ? bytes.bytes : bytes
   }
 
-  class PrivateKey extends Generic.PrivateKey {
+  class SigningKey extends Abstract.SigningKey {
 
     constructor(
       readonly bytes: Uint8Array
@@ -20,11 +22,11 @@ export function fromNoble(): Adapter {
     [Symbol.dispose]() { }
 
     static create(bytes: Uint8Array) {
-      return new PrivateKey(bytes)
+      return new SigningKey(bytes)
     }
 
     static randomOrThrow() {
-      return new PrivateKey(secp256k1.utils.randomPrivateKey())
+      return new SigningKey(secp256k1.utils.randomPrivateKey())
     }
 
     static importOrThrow(bytes: BytesOrCopiable) {
@@ -33,11 +35,11 @@ export function fromNoble(): Adapter {
       if (!secp256k1.utils.isValidPrivateKey(bytes2))
         throw new Error("Invalid private key")
 
-      return new PrivateKey(bytes2.slice())
+      return new SigningKey(bytes2.slice())
     }
 
-    getPublicKeyOrThrow() {
-      return new PublicKey(secp256k1.ProjectivePoint.fromPrivateKey(this.bytes))
+    getVerifyingKeyOrThrow() {
+      return new VerifyingKey(secp256k1.ProjectivePoint.fromPrivateKey(this.bytes))
     }
 
     signOrThrow(payload: BytesOrCopiable) {
@@ -50,7 +52,7 @@ export function fromNoble(): Adapter {
 
   }
 
-  class PublicKey extends Generic.PublicKey {
+  class VerifyingKey extends Abstract.VerifyingKey {
 
     constructor(
       readonly inner: ProjPointType<bigint>
@@ -61,15 +63,15 @@ export function fromNoble(): Adapter {
     [Symbol.dispose]() { }
 
     static create(inner: ProjPointType<bigint>) {
-      return new PublicKey(inner)
+      return new VerifyingKey(inner)
     }
 
     static importOrThrow(bytes: BytesOrCopiable) {
-      return new PublicKey(secp256k1.ProjectivePoint.fromHex(getBytes(bytes)))
+      return new VerifyingKey(secp256k1.ProjectivePoint.fromHex(getBytes(bytes)))
     }
 
     static recoverOrThrow(hashed: BytesOrCopiable, signature: SignatureAndRecovery) {
-      return new PublicKey(signature.inner.recoverPublicKey(getBytes(hashed)))
+      return new VerifyingKey(signature.inner.recoverPublicKey(getBytes(hashed)))
     }
 
     verifyOrThrow(payload: BytesOrCopiable, signature: SignatureAndRecovery) {
@@ -86,7 +88,7 @@ export function fromNoble(): Adapter {
 
   }
 
-  class SignatureAndRecovery extends Generic.SignatureAndRecovery {
+  class SignatureAndRecovery extends Abstract.SignatureAndRecovery {
 
     constructor(
       readonly inner: RecoveredSignatureType
@@ -118,5 +120,5 @@ export function fromNoble(): Adapter {
 
   }
 
-  return { PrivateKey, PublicKey, SignatureAndRecovery }
+  return { SigningKey, VerifyingKey, SignatureAndRecovery } satisfies Adapter
 }
