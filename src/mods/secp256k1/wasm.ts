@@ -1,5 +1,5 @@
 import { Box } from "@hazae41/box"
-import type { Secp256k1SignatureAndRecovery, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1Wasm } from "@hazae41/secp256k1.wasm"
+import { Secp256k1SignatureAndRecovery, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1Wasm } from "@hazae41/secp256k1.wasm"
 import { BytesOrCopiable } from "libs/copiable/index.js"
 import * as Abstract from "./abstract.js"
 import { Adapter } from "./adapter.js"
@@ -9,7 +9,7 @@ export function fromWasm(wasm: typeof Secp256k1Wasm) {
 
   function getMemory(bytesOrCopiable: BytesOrCopiable) {
     if (bytesOrCopiable instanceof Memory)
-      return Box.createAsMoved(bytesOrCopiable)
+      return Box.createAsDropped(bytesOrCopiable)
     if (bytesOrCopiable instanceof Uint8Array)
       return Box.create(new Memory(bytesOrCopiable))
     return Box.create(new Memory(bytesOrCopiable.bytes))
@@ -38,7 +38,7 @@ export function fromWasm(wasm: typeof Secp256k1Wasm) {
     static importOrThrow(bytes: BytesOrCopiable) {
       using memory = getMemory(bytes)
 
-      const inner = Secp256k1SigningKey.from_bytes(memory.inner)
+      const inner = Secp256k1SigningKey.from_bytes(memory.value)
 
       return new SigningKey(inner)
     }
@@ -50,7 +50,7 @@ export function fromWasm(wasm: typeof Secp256k1Wasm) {
     signOrThrow(payload: BytesOrCopiable) {
       using memory = getMemory(payload)
 
-      const inner = this.inner.sign_prehash_recoverable(memory.inner)
+      const inner = this.inner.sign_prehash_recoverable(memory.value)
 
       return new SignatureAndRecovery(inner)
     }
@@ -80,7 +80,7 @@ export function fromWasm(wasm: typeof Secp256k1Wasm) {
     static importOrThrow(bytes: BytesOrCopiable) {
       using memory = getMemory(bytes)
 
-      const inner = Secp256k1VerifyingKey.from_sec1_bytes(memory.inner)
+      const inner = Secp256k1VerifyingKey.from_sec1_bytes(memory.value)
 
       return new VerifyingKey(inner)
     }
@@ -88,7 +88,7 @@ export function fromWasm(wasm: typeof Secp256k1Wasm) {
     static recoverOrThrow(hashed: BytesOrCopiable, signature: SignatureAndRecovery) {
       using memory = getMemory(hashed)
 
-      const inner = Secp256k1VerifyingKey.recover_from_prehash(memory.inner, signature.inner)
+      const inner = Secp256k1VerifyingKey.recover_from_prehash(memory.value, signature.inner)
 
       return new VerifyingKey(inner)
     }
@@ -116,6 +116,14 @@ export function fromWasm(wasm: typeof Secp256k1Wasm) {
     }
 
     static create(inner: Secp256k1SignatureAndRecovery) {
+      return new SignatureAndRecovery(inner)
+    }
+
+    static importOrThrow(bytes: BytesOrCopiable) {
+      using memory = getMemory(bytes)
+
+      const inner = Secp256k1SignatureAndRecovery.from_bytes(memory.value)
+
       return new SignatureAndRecovery(inner)
     }
 

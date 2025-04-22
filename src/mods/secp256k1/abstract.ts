@@ -46,6 +46,10 @@ export abstract class SignatureAndRecovery implements Disposable {
 
   constructor(..._: any[]) { }
 
+  static importOrThrow(bytes: BytesOrCopiable): SignatureAndRecovery {
+    throw new Error("Method not implemented.")
+  }
+
   abstract [Symbol.dispose](): void
 
   abstract exportOrThrow(): Copiable
