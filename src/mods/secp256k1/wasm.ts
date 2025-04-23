@@ -1,11 +1,11 @@
 import { Box } from "@hazae41/box"
-import { Secp256k1SignatureAndRecovery, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1Wasm } from "@hazae41/secp256k1.wasm"
+import type { Secp256k1SignatureAndRecovery, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1Wasm } from "@hazae41/secp256k1.wasm"
 import { BytesOrCopiable } from "libs/copiable/index.js"
 import * as Abstract from "./abstract.js"
 import { Adapter } from "./adapter.js"
 
 export function fromWasm(wasm: typeof Secp256k1Wasm) {
-  const { Memory, Secp256k1SigningKey, Secp256k1VerifyingKey } = wasm
+  const { Memory, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1SignatureAndRecovery } = wasm
 
   function getMemory(bytesOrCopiable: BytesOrCopiable) {
     if (bytesOrCopiable instanceof Memory)
