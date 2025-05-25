@@ -1,4 +1,4 @@
-import { Box } from "@hazae41/box"
+import { Pin, Ref } from "@hazae41/box"
 import type { Secp256k1SignatureAndRecovery, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1Wasm } from "@hazae41/secp256k1.wasm"
 import { BytesOrCopiable } from "libs/copiable/index.js"
 import * as Abstract from "./abstract.js"
@@ -9,10 +9,12 @@ export function fromWasm(wasm: typeof Secp256k1Wasm) {
 
   function getMemory(bytesOrCopiable: BytesOrCopiable) {
     if (bytesOrCopiable instanceof Memory)
-      return Box.createAsDropped(bytesOrCopiable)
+      return new Ref(bytesOrCopiable)
+
     if (bytesOrCopiable instanceof Uint8Array)
-      return Box.create(new Memory(bytesOrCopiable))
-    return Box.create(new Memory(bytesOrCopiable.bytes))
+      return Pin.from(new Memory(bytesOrCopiable))
+
+    return Pin.from(new Memory(bytesOrCopiable.bytes))
   }
 
   class SigningKey extends Abstract.SigningKey {
