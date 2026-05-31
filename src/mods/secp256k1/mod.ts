@@ -41,7 +41,7 @@ export class SecretKey {
    * Export to 32 bytes
    * @returns 
    */
-  export(): Uint8Array {
+  export(): Uint8Array<ArrayBuffer> {
     return new Uint8Array(this.inner.to_bytes().bytes)
   }
 
@@ -105,7 +105,7 @@ export class PublicKey {
    * Downcast this public key to a point
    * @returns 
    */
-  downcast() {
+  downcast(): Point {
     return new Point(this.inner.to_point())
   }
 
@@ -114,7 +114,7 @@ export class PublicKey {
    * @param compressed 
    * @returns 
    */
-  export(compressed: boolean): Uint8Array {
+  export(compressed: boolean): Uint8Array<ArrayBuffer> {
     if (compressed) {
       return new Uint8Array(this.inner.to_sec1_compressed_bytes().bytes)
     } else {
@@ -151,7 +151,7 @@ export class Signature {
    * Export to RSV format (32 + 32 + 1 = 65 bytes)
    * @returns 
    */
-  export(): Uint8Array {
+  export(): Uint8Array<ArrayBuffer> {
     return new Uint8Array(this.inner.to_rsv_bytes().bytes)
   }
 
