@@ -3,7 +3,7 @@
 Secp256k1 adapter for WebAssembly and JS implementations
 
 ```bash
-npm install --save-peer @hazae41/secp256k1
+npm install @hazae41/secp256k1
 ```
 
 [**Node Package 📦**](https://www.npmjs.com/package/@hazae41/secp256k1)
