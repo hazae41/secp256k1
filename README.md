@@ -16,10 +16,6 @@ npm install --save-peer @hazae41/secp256k1
 
 ## Implementation
 
-### Default
-
-Noble (@noble/curves) will be used by default
-
 ### WebAssembly
 
 ```bash
