@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "@hazae41/phobos": "^2.0.16",
-    "@hazae41/secp256k1-wasm": "^2.0.8",
     "@hazae41/tscousin": "^1.0.28",
     "typescript": "^6.0.3"
   },
@@ -33,6 +32,7 @@
     "esmodules"
   ],
   "dependencies": {
-    "@hazae41/result-and-option": "^2.0.10"
+    "@hazae41/result-and-option": "^2.0.10",
+    "@hazae41/secp256k1-wasm": "^2.0.8"
   }
 }

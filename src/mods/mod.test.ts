@@ -1,39 +1,29 @@
 import { assert, test } from "@hazae41/phobos";
-
-import { secp256k1Wasm } from "@hazae41/secp256k1-wasm";
-import { fromWasm, get, set, } from "./mod.ts";
-
-await secp256k1Wasm.load()
-
-set(fromWasm(secp256k1Wasm))
+import { secp256k1 } from "../mod.ts";
 
 test("signature", () => {
-  const { Memory, Secp256k1SigningKey, Secp256k1VerifyingKey } = get().getOrThrow()
+  const key = secp256k1.SecretKey.random()
 
-  const key = Secp256k1SigningKey.randomOrThrow()
+  const pld = crypto.getRandomValues(new Uint8Array(32))
+  const sig = key.sign(pld)
 
-  const pld = Memory.fromOrThrow(crypto.getRandomValues(new Uint8Array(32)))
-  const sig = key.signOrThrow(pld)
+  const pub = secp256k1.PublicKey.recover(pld, sig)
 
-  const pub = Secp256k1VerifyingKey.recoverOrThrow(pld, sig)
-
-  assert(pub.exportAsCompressedOrThrow().bytes.toHex() === key.publishOrThrow().exportAsCompressedOrThrow().bytes.toHex())
+  assert(pub.export(true).toHex() === key.publish().export(true).toHex())
 })
 
 test("arithmetic", () => {
-  const { Memory, Secp256k1SigningKey, Secp256k1Point, Secp256k1Scalar } = get().getOrThrow()
+  const key = secp256k1.SecretKey.random()
 
-  const key = Secp256k1SigningKey.randomOrThrow()
+  const i = Uint8Array.fromHex("1234abcd".padStart(64, "0"))
 
-  const i = Secp256k1Scalar.importOrThrow(Memory.fromOrThrow(Uint8Array.fromHex("1234abcd".padStart(64, "0"))))
+  const x = secp256k1.Point.generator.mul(i)
+  const y = key.publish().downcast()
+  const z = x.add(y)
 
-  const x = Secp256k1Point.generatorOrThrow().multiplyOrThrow(i)
-  const y = key.publishOrThrow().downcastOrThrow()
-  const z = x.addOrThrow(y)
+  assert(z.identity === false)
 
-  assert(z.checkOrThrow() === false)
+  const pub = z.upcast()
 
-  const pub = z.upcastOrThrow()
-
-  console.log(pub.exportAsUncompressedOrThrow().bytes.toHex())
+  console.log(pub.export(true).toHex())
 })
