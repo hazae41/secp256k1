@@ -19,12 +19,12 @@ npm install --save-peer @hazae41/secp256k1
 ### WebAssembly
 
 ```bash
-npm install @hazae41/secp256k1.wasm
+npm install @hazae41/secp256k1-wasm
 ```
 
 ```typescript
 import { secp256k1 } from "@hazae41/secp256k1"
-import { secp256k1Wasm } from "@hazae41/secp256k1.wasm"
+import { secp256k1Wasm } from "@hazae41/secp256k1-wasm"
 
 await Secp256k1Wasm.load()
 
