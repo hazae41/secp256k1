@@ -15,9 +15,7 @@ test("signature", () => {
 test("arithmetic", () => {
   const key = secp256k1.SecretKey.random()
 
-  const i = Uint8Array.fromHex("1234abcd".padStart(64, "0"))
-
-  const x = secp256k1.Point.generator.mul(i)
+  const x = secp256k1.Point.generator.mul(0x1234abcdn)
   const y = key.publish().downcast()
   const z = x.add(y)
 
