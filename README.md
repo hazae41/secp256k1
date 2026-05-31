@@ -6,7 +6,7 @@ Secp256k1 for the web
 npm install @hazae41/secp256k1
 ```
 
-[**Node Package 📦**](https://www.npmjs.com/package/@hazae41/secp256k1)
+[**NPM 📦**](https://www.npmjs.com/package/@hazae41/secp256k1)
 
 ## Features
 
