@@ -42,7 +42,7 @@ export class SecretKey {
    * @returns 
    */
   export(): Uint8Array {
-    return this.inner.to_bytes().bytes
+    return new Uint8Array(this.inner.to_bytes().bytes)
   }
 
   /**
@@ -116,9 +116,9 @@ export class PublicKey {
    */
   export(compressed: boolean): Uint8Array {
     if (compressed) {
-      return this.inner.to_sec1_compressed_bytes().bytes
+      return new Uint8Array(this.inner.to_sec1_compressed_bytes().bytes)
     } else {
-      return this.inner.to_sec1_uncompressed_bytes().bytes
+      return new Uint8Array(this.inner.to_sec1_uncompressed_bytes().bytes)
     }
   }
 
@@ -152,7 +152,7 @@ export class Signature {
    * @returns 
    */
   export(): Uint8Array {
-    return this.inner.to_rsv_bytes().bytes
+    return new Uint8Array(this.inner.to_rsv_bytes().bytes)
   }
 
 }
