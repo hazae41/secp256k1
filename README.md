@@ -1,6 +1,6 @@
 # Secp256k1
 
-Secp256k1 adapter for WebAssembly and JS implementations
+Secp256k1 for the web
 
 ```bash
 npm install @hazae41/secp256k1
