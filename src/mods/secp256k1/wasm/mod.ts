@@ -100,6 +100,10 @@ export function fromWasm(wasm: typeof secp256k1Wasm): Adapter {
       return new Secp256k1VerifyingKey(wasm.Secp256k1VerifyingKey.recover_from_prehash(hashed.inner, signature.inner))
     }
 
+    downcastOrThrow() {
+      return new Secp256k1Point(this.inner.to_point())
+    }
+
     exportAsCompressedOrThrow() {
       return new Memory(this.inner.to_sec1_compressed_bytes())
     }
@@ -134,5 +138,67 @@ export function fromWasm(wasm: typeof secp256k1Wasm): Adapter {
 
   }
 
-  return { Memory, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1SignatureAndRecovery }
+  class Secp256k1Point extends Abstract.Secp256k1Point {
+
+    constructor(
+      readonly inner: secp256k1Wasm.Secp256k1Point
+    ) {
+      super()
+    }
+
+    [Symbol.dispose]() {
+      this.inner[Symbol.dispose]()
+    }
+
+    static generatorOrThrow() {
+      return new Secp256k1Point(wasm.Secp256k1Point.generator())
+    }
+
+    multiplyOrThrow(scalar: Secp256k1Scalar) {
+      if (scalar instanceof Secp256k1Scalar === false)
+        throw new Error()
+      return new Secp256k1Point(this.inner.multiply(scalar.inner))
+    }
+
+    addOrThrow(point: Abstract.Secp256k1Point): Abstract.Secp256k1Point {
+      if (point instanceof Secp256k1Point === false)
+        throw new Error()
+      return new Secp256k1Point(this.inner.add(point.inner))
+    }
+
+    checkOrThrow() {
+      return this.inner.is_identity()
+    }
+
+    upcastOrThrow(): Abstract.Secp256k1VerifyingKey {
+      return new Secp256k1VerifyingKey(wasm.Secp256k1VerifyingKey.from_point(this.inner))
+    }
+
+  }
+
+  class Secp256k1Scalar extends Abstract.Secp256k1Scalar {
+
+    constructor(
+      readonly inner: secp256k1Wasm.Secp256k1Scalar
+    ) {
+      super()
+    }
+
+    [Symbol.dispose]() {
+      this.inner[Symbol.dispose]()
+    }
+
+    static importOrThrow(key: Memory) {
+      if (key instanceof Memory === false)
+        throw new Error()
+      return new Secp256k1Scalar(wasm.Secp256k1Scalar.from_bytes(key.inner))
+    }
+
+    exportOrThrow() {
+      return new Memory(this.inner.to_bytes())
+    }
+
+  }
+
+  return { Memory, Secp256k1SigningKey, Secp256k1VerifyingKey, Secp256k1SignatureAndRecovery, Secp256k1Point, Secp256k1Scalar }
 }

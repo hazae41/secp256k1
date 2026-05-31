@@ -22,4 +22,8 @@ export interface Adapter {
 
   readonly Secp256k1SignatureAndRecovery: Abstract.Secp256k1SignatureAndRecovery.Static
 
+  readonly Secp256k1Scalar: Abstract.Secp256k1Scalar.Static
+
+  readonly Secp256k1Point: Abstract.Secp256k1Point.Static
+
 }

@@ -52,6 +52,8 @@ export namespace Abstract {
 
     abstract [Symbol.dispose](): void
 
+    abstract downcastOrThrow(): Secp256k1Point
+
     abstract exportAsCompressedOrThrow(): Memory
 
     abstract exportAsUncompressedOrThrow(): Memory
@@ -83,6 +85,48 @@ export namespace Abstract {
     export interface Static {
 
       importOrThrow(signature: Memory): Secp256k1SignatureAndRecovery
+
+    }
+
+  }
+
+  export abstract class Secp256k1Point implements Disposable {
+
+    abstract [Symbol.dispose](): void
+
+    abstract multiplyOrThrow(scalar: Secp256k1Scalar): Secp256k1Point
+
+    abstract addOrThrow(point: Secp256k1Point): Secp256k1Point
+
+    abstract checkOrThrow(): boolean
+
+    abstract upcastOrThrow(): Secp256k1VerifyingKey
+
+  }
+
+  export namespace Secp256k1Point {
+
+    export interface Static {
+
+      generatorOrThrow(): Secp256k1Point
+
+    }
+
+  }
+
+  export abstract class Secp256k1Scalar implements Disposable {
+
+    abstract [Symbol.dispose](): void
+
+    abstract exportOrThrow(): Memory
+
+  }
+
+  export namespace Secp256k1Scalar {
+
+    export interface Static {
+
+      importOrThrow(scalar: Memory): Secp256k1Scalar
 
     }
 
