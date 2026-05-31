@@ -3,7 +3,7 @@
 Secp256k1 adapter for WebAssembly and JS implementations
 
 ```bash
-npm i @hazae41/secp256k1
+npm install --save-peer @hazae41/secp256k1
 ```
 
 [**Node Package 📦**](https://www.npmjs.com/package/@hazae41/secp256k1)
@@ -14,32 +14,23 @@ npm i @hazae41/secp256k1
 - 100% TypeScript and ESM
 - No external dependencies
 
-## Usage
+## Implementation
+
+### Default
+
+Noble (@noble/curves) will be used by default
 
 ### WebAssembly
 
 ```bash
-npm i @hazae41/secp256k1.wasm
+npm install @hazae41/secp256k1.wasm
 ```
 
 ```typescript
-import { Secp256k1 } from "@hazae41/secp256k1"
-import { Secp256k1Wasm } from "@hazae41/secp256k1.wasm"
+import { secp256k1 } from "@hazae41/secp256k1"
+import { secp256k1Wasm } from "@hazae41/secp256k1.wasm"
 
-await Secp256k1Wasm.initBundled()
+await Secp256k1Wasm.load()
 
-Secp256k1.set(Secp256k1.fromWasm(Secp256k1Wasm))
-```
-
-### Noble (JavaScript)
-
-```bash
-npm i @noble/curves
-```
-
-```typescript
-import { Secp256k1 } from "@hazae41/secp256k1"
-import * as Secp256k1Noble from "@noble/curves/secp256k1"
-
-Secp256k1.set(Secp256k1.fromNoble(Secp256k1Noble))
+secp256k1.set(secp256k1.fromWasm(secp256k1Wasm))
 ```

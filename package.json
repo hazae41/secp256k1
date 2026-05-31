@@ -3,55 +3,36 @@
   "name": "@hazae41/secp256k1",
   "version": "1.0.4",
   "description": "Secp256k1 adapter for WebAssembly and JS implementations",
-  "homepage": "https://github.com/hazae41/secp256k1",
   "repository": "github:hazae41/secp256k1",
   "author": "hazae41",
-  "license": "MIT",
-  "main": "./dist/cjs/src/index.cjs",
-  "module": "./dist/esm/src/index.mjs",
-  "types": "./dist/types/index.d.ts",
-  "sideEffects": false,
-  "files": [
-    "./dist/esm",
-    "./dist/cjs",
-    "./dist/types"
-  ],
   "scripts": {
-    "build": "rimraf dist && rollup -c",
-    "test": "node ./dist/test/index.test.mjs",
-    "prepare": "npm run build"
+    "examine": "deno lint ./src && deno check ./src && deno test ./src",
+    "prepack": "rm -rf ./out && tsc && tscousin"
   },
-  "devDependencies": {
-    "@hazae41/phobos": "^1.0.10",
-    "@hazae41/rimraf": "^1.0.1",
-    "@hazae41/secp256k1.wasm": "^1.0.12",
-    "@noble/curves": "^1.9.0",
-    "@rollup/plugin-typescript": "^12.1.2",
-    "@types/node": "^22.15.21",
-    "rollup": "^4.41.1",
-    "rollup-plugin-dts": "^6.2.1",
-    "rollup-plugin-node-externals": "^8.0.0",
-    "tslib": "^2.8.1",
-    "typescript": "^5.8.3"
-  },
+  "files": [
+    "./out"
+  ],
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/src/index.mjs",
-      "require": "./dist/cjs/src/index.cjs"
+      "types": "./out/mod.d.ts",
+      "import": "./out/mod.js"
     }
   },
+  "devDependencies": {
+    "@hazae41/phobos": "^2.0.16",
+    "@hazae41/secp256k1-wasm": "^2.0.6",
+    "@hazae41/tscousin": "^1.0.28",
+    "typescript": "^6.0.3"
+  },
   "keywords": [
-    "secp256k1",
+    "chacha20poly1305",
     "crypto",
-    "k253",
     "cryptography",
     "adapter",
     "typescript",
     "esmodules"
   ],
   "dependencies": {
-    "@hazae41/box": "^3.0.0",
-    "@hazae41/option": "^1.1.4"
+    "@hazae41/result-and-option": "^2.0.10"
   }
 }
