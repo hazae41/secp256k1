@@ -14,19 +14,13 @@ npm install --save-peer @hazae41/secp256k1
 - 100% TypeScript and ESM
 - No external dependencies
 
-## Implementation
+## Usage 
 
-### WebAssembly
+```tsx
+const key = secp256k1.SecretKey.random()
 
-```bash
-npm install @hazae41/secp256k1-wasm
-```
+const msg = crypto.getRandomValues(new Uint8Array(32))
+const sig = key.sign(msg)
 
-```typescript
-import { secp256k1 } from "@hazae41/secp256k1"
-import { secp256k1Wasm } from "@hazae41/secp256k1-wasm"
-
-await Secp256k1Wasm.load()
-
-secp256k1.set(secp256k1.fromWasm(secp256k1Wasm))
+const pub = secp256k1.PublicKey.recover(msg, sig)
 ```

@@ -4,10 +4,10 @@ import { secp256k1 } from "../mod.ts";
 test("signature", () => {
   const key = secp256k1.SecretKey.random()
 
-  const pld = crypto.getRandomValues(new Uint8Array(32))
-  const sig = key.sign(pld)
+  const msg = crypto.getRandomValues(new Uint8Array(32))
+  const sig = key.sign(msg)
 
-  const pub = secp256k1.PublicKey.recover(pld, sig)
+  const pub = secp256k1.PublicKey.recover(msg, sig)
 
   assert(pub.export(true).toHex() === key.publish().export(true).toHex())
 })
