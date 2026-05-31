@@ -1,6 +1,14 @@
+// deno-lint-ignore-file no-namespace
+
 import { secp256k1Wasm } from "@hazae41/secp256k1-wasm";
 
 await secp256k1Wasm.load()
+
+export namespace Curve {
+
+  export const order = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141n
+
+}
 
 export class SecretKey {
 
@@ -198,15 +206,15 @@ export class Point {
   }
 
   /**
-   * Multiply this point by a scalar (32 bytes)
+   * Multiply this point by a scalar
    * @param scalar 
    * @returns 
    */
-  mul(scalar: Uint8Array): Point {
+  mul(scalar: bigint): Point {
     const { Memory, Secp256k1Scalar } = secp256k1Wasm
 
-    const i = Secp256k1Scalar.from_bytes(new Memory(scalar))
-    const x = this.inner.multiply(i)
+    const n = Uint8Array.fromHex(scalar.toString(16).padStart(64, "0"))
+    const x = this.inner.multiply(Secp256k1Scalar.from_bytes(new Memory(n)))
 
     return new Point(x)
   }
