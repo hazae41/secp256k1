@@ -1,8 +1,8 @@
 // deno-lint-ignore-file no-namespace
 
-import { secp256k1Wasm } from "@hazae41/secp256k1-wasm";
+import { load, Memory, Secp256k1Point, Secp256k1Scalar, Secp256k1SignatureAndRecovery, Secp256k1SigningKey, Secp256k1VerifyingKey } from "@hazae41/secp256k1-wasm";
 
-await secp256k1Wasm.load()
+await load()
 
 export namespace Curve {
 
@@ -17,7 +17,7 @@ export class SecretKey {
    * @param inner 
    */
   constructor(
-    readonly inner: secp256k1Wasm.Secp256k1SigningKey
+    readonly inner: Secp256k1SigningKey
   ) { }
 
   /**
@@ -25,11 +25,7 @@ export class SecretKey {
    * @returns 
    */
   static random(): SecretKey {
-    const { Secp256k1SigningKey } = secp256k1Wasm
-
-    const inner = new Secp256k1SigningKey()
-
-    return new SecretKey(inner)
+    return new SecretKey(new Secp256k1SigningKey())
   }
 
   /**
@@ -38,11 +34,7 @@ export class SecretKey {
    * @returns 
    */
   static import(key: Uint8Array): SecretKey {
-    const { Memory, Secp256k1SigningKey } = secp256k1Wasm
-
-    const inner = Secp256k1SigningKey.from_bytes(new Memory(key))
-
-    return new SecretKey(inner)
+    return new SecretKey(Secp256k1SigningKey.from_bytes(new Memory(key)))
   }
 
   /**
@@ -67,11 +59,7 @@ export class SecretKey {
    * @returns 
    */
   sign(hashed: Uint8Array): Signature {
-    const { Memory } = secp256k1Wasm
-
-    const result = this.inner.sign_prehash_recoverable(new Memory(hashed))
-
-    return new Signature(result)
+    return new Signature(this.inner.sign_prehash_recoverable(new Memory(hashed)))
   }
 
 }
@@ -79,7 +67,7 @@ export class SecretKey {
 export class PublicKey {
 
   constructor(
-    readonly inner: secp256k1Wasm.Secp256k1VerifyingKey
+    readonly inner: Secp256k1VerifyingKey
   ) { }
 
   /**
@@ -88,11 +76,7 @@ export class PublicKey {
    * @returns 
    */
   static import(key: Uint8Array): PublicKey {
-    const { Memory, Secp256k1VerifyingKey } = secp256k1Wasm
-
-    const inner = Secp256k1VerifyingKey.from_sec1_bytes(new Memory(key))
-
-    return new PublicKey(inner)
+    return new PublicKey(Secp256k1VerifyingKey.from_sec1_bytes(new Memory(key)))
   }
 
   /**
@@ -102,11 +86,7 @@ export class PublicKey {
    * @returns 
    */
   static recover(hashed: Uint8Array, signature: Signature): PublicKey {
-    const { Memory, Secp256k1VerifyingKey } = secp256k1Wasm
-
-    const result = Secp256k1VerifyingKey.recover_from_prehash(new Memory(hashed), signature.inner)
-
-    return new PublicKey(result)
+    return new PublicKey(Secp256k1VerifyingKey.recover_from_prehash(new Memory(hashed), signature.inner))
   }
 
   /**
@@ -139,7 +119,7 @@ export class Signature {
    * @param inner 
    */
   constructor(
-    readonly inner: secp256k1Wasm.Secp256k1SignatureAndRecovery
+    readonly inner: Secp256k1SignatureAndRecovery
   ) { }
 
   /**
@@ -148,11 +128,7 @@ export class Signature {
    * @returns 
    */
   static import(rsv: Uint8Array): Signature {
-    const { Memory, Secp256k1SignatureAndRecovery } = secp256k1Wasm
-
-    const inner = Secp256k1SignatureAndRecovery.from_rsv_bytes(new Memory(rsv))
-
-    return new Signature(inner)
+    return new Signature(Secp256k1SignatureAndRecovery.from_rsv_bytes(new Memory(rsv)))
   }
 
   /**
@@ -172,18 +148,14 @@ export class Point {
    * @param inner 
    */
   constructor(
-    readonly inner: secp256k1Wasm.Secp256k1Point
+    readonly inner: Secp256k1Point
   ) { }
 
   /**
    * The generator point
    */
   static get generator(): Point {
-    const { Secp256k1Point } = secp256k1Wasm
-
-    const inner = Secp256k1Point.generator()
-
-    return new Point(inner)
+    return new Point(Secp256k1Point.generator())
   }
 
   /**
@@ -198,11 +170,7 @@ export class Point {
    * @returns 
    */
   upcast(): PublicKey {
-    const { Secp256k1VerifyingKey } = secp256k1Wasm
-
-    const inner = Secp256k1VerifyingKey.from_point(this.inner)
-
-    return new PublicKey(inner)
+    return new PublicKey(Secp256k1VerifyingKey.from_point(this.inner))
   }
 
   /**
@@ -211,9 +179,8 @@ export class Point {
    * @returns 
    */
   mul(scalar: bigint): Point {
-    const { Memory, Secp256k1Scalar } = secp256k1Wasm
-
     const n = Uint8Array.fromHex(scalar.toString(16).padStart(64, "0"))
+
     const x = this.inner.multiply(Secp256k1Scalar.from_bytes(new Memory(n)))
 
     return new Point(x)
