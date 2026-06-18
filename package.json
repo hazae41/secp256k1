@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@hazae41/secp256k1",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Secp256k1 for the web",
   "repository": "github:hazae41/secp256k1",
   "author": "hazae41",
